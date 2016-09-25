@@ -18,6 +18,8 @@ namespace RandomTanks
         Texture2D tankTextureSecondTeam;
         Texture2D mapWallArea;
         Texture2D mapRoadArea;
+        Texture2D bulletTexture;
+        int ko = 0;
 
         private SpriteFont font;
         private int score = 0;
@@ -57,6 +59,7 @@ namespace RandomTanks
             tankTextureSecondTeam = Content.Load<Texture2D>("tank2");
             mapWallArea = Content.Load<Texture2D>("Wall1");
             mapRoadArea = Content.Load<Texture2D>("Road1");
+            bulletTexture = Content.Load<Texture2D>("bullet");
             font = Content.Load<SpriteFont>("Score");
         }
 
@@ -104,6 +107,18 @@ namespace RandomTanks
             {
                 level1.MoveTankY(playerTankId, dy);
             }
+
+            if(Keyboard.GetState().IsKeyDown(Keys.Space) && ko == 0)
+            {
+                level1.Fire(playerTankId);
+                ko = 10;
+            }
+
+            if(ko != 0)
+            {
+                ko--;
+            }
+            level1.Update();
 
             base.Update(gameTime);
         }
@@ -165,6 +180,13 @@ namespace RandomTanks
 
                 spriteBatch.Draw(texture, new Vector2(t.x, t.y), rotation: rotation, origin: new Vector2((Tank.tankSize / 2), (Tank.tankSize / 2)), color: Color.White);
             }
+
+            for (int i = 0; i < level1.bullets.Count; i++)
+            {
+                Bullet b = level1.bullets[i];
+                spriteBatch.Draw(bulletTexture, new Vector2(b.x, b.y), color: Color.Black);
+            }
+
             string s = string.Format("x = {0} y = {1} z = {2}", level1.tanks[0].x, level1.tanks[0].y, 50);
             spriteBatch.DrawString(font, s, new Vector2(100, 100), Color.Black);
             spriteBatch.End();

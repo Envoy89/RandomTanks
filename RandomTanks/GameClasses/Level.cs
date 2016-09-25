@@ -9,10 +9,12 @@ namespace RandomTanks.GameClasses
     {
         public Map map;
         public List<Tank> tanks;
+        public List<Bullet> bullets;
 
         public Level()
         {
             map = new Map();
+            bullets = new List<Bullet>();
             tanks = new List<Tank>();
             tanks.Add(new Tank(9 * 50, 5 * 50, TeamType.FirstTeam, 100));
             tanks.Add(new Tank(3*50, 50, TeamType.FirstTeam, 100));
@@ -136,5 +138,86 @@ namespace RandomTanks.GameClasses
 
             return true;
         }
+
+        public void Fire(int tankId)
+        {
+            int x = tanks[tankId].x, y = tanks[tankId].y;
+            Orientation or = tanks[tankId].or;
+            TeamType t = tanks[tankId].team;
+            bullets.Add(new Bullet(x, y, or, t, tanks[tankId]));
+        }
+
+        public void Update()
+        {
+            for (int i = 0; i < bullets.Count; i++)
+            {
+                int dx = 0, dy = 0;
+                Bullet b = bullets[i];
+                switch (b.or)
+                {
+                    case Orientation.North:
+                        dy = -b.speed;
+                        break;
+                    case Orientation.South:
+                        dy = b.speed;
+                        break;
+                    case Orientation.West:
+                        dx = -b.speed;
+                        break;
+                    case Orientation.East:
+                        dx = b.speed;
+                        break;
+                }
+                bullets[i].x += dx;
+                bullets[i].y += dy;
+
+                if(b.x < 0 || b.y < 0 || b.x > map.mapSizeX || b.y > map.mapSizeY)
+                {
+                    bullets.Remove(b);
+                    return;
+                }
+
+                int cubeX = (b.x + dx) / map.mapCubeSIze;
+                int cubeY = (b.y + dy) / map.mapCubeSIze;
+                int y = cubeY * 50;
+                int x = cubeX * 50;
+                Rectangle cubeRect = new Rectangle(x, y, map.mapCubeSIze, map.mapCubeSIze);
+                Rectangle bulletRect = new Rectangle(b.x, b.y, b.sizeX, b.sizeY);
+                if ((cubeX >= 0 && cubeX < map.mass.GetLength(0) && cubeY >= 0 && cubeY < map.mass.GetLength(1)) && map.mass[cubeX, cubeY] == AreaType.Wall && cubeRect.Intersects(bulletRect))
+                {
+                    bullets.Remove(b);
+                    return;
+                }
+
+                for (int j = 0; j < tanks.Count; j++)
+                {
+                    Tank t = tanks[j];
+                    if(t == b.owner)
+                    {
+                        continue;
+                    }
+                    x = t.x;
+                    y = t.y;
+                    Rectangle tankReact = new Rectangle(x - Tank.tankSize / 2, y - Tank.tankSize / 2, Tank.tankSize, Tank.tankSize);
+                    if (t.team == b.team && bulletRect.Intersects(tankReact))
+                    {
+                        bullets.Remove(b);
+                        break;
+                    }
+                    if (bulletRect.Intersects(tankReact))
+                    {
+                       
+                        t.life -= b.owner.damage;
+                        if(t.life <= 0)
+                        {
+                            tanks.Remove(t);
+                        }
+                        bullets.Remove(b);
+                        break;
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -12,8 +12,9 @@ namespace RandomTanks.GameClasses
         public static int tankSize = 50;
         public int x, y;
         public TeamType team;
-        double life;
-        public Orientation or; 
+        public double life;
+        public Orientation or;
+        public double damage = 50;
 
         public Tank(int x, int y, TeamType team, double life)
         {
