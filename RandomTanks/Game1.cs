@@ -13,10 +13,14 @@ namespace RandomTanks
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         int playerTankId = 0;
-        int tankStep = 3;
+        int tankStep = 5;
         Texture2D tankTextureFirstTeam;
         Texture2D tankTextureSecondTeam;
+        Texture2D mapWallArea;
+        Texture2D mapRoadArea;
 
+        private SpriteFont font;
+        private int score = 0;
 
         Level level1;
 
@@ -24,6 +28,8 @@ namespace RandomTanks
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            graphics.PreferredBackBufferWidth = 1000; //ширина экрана 
+            graphics.PreferredBackBufferHeight = 850; //его высота  
         }
 
         /// <summary>
@@ -49,7 +55,9 @@ namespace RandomTanks
             spriteBatch = new SpriteBatch(GraphicsDevice);
             tankTextureFirstTeam = Content.Load<Texture2D>("tank1");
             tankTextureSecondTeam = Content.Load<Texture2D>("tank2");
-            // TODO: use this.Content to load your game content here
+            mapWallArea = Content.Load<Texture2D>("Wall1");
+            mapRoadArea = Content.Load<Texture2D>("Road1");
+            font = Content.Load<SpriteFont>("Score");
         }
 
         /// <summary>
@@ -110,6 +118,21 @@ namespace RandomTanks
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
+            AreaType[,] mass = level1.map.mass;
+            for (int i = 0; i < mass.GetLength(0); i++)
+            {
+                for (int j = 0; j < mass.GetLength(1); j++)
+                {
+                    if (mass[i, j] == AreaType.Wall)
+                    {
+                        spriteBatch.Draw(mapWallArea, new Vector2(i * 50, j * 50), color: Color.White);
+                    }
+                    else if (mass[i, j] == AreaType.Road)
+                    {
+                        spriteBatch.Draw(mapRoadArea, new Vector2(i * 50, j * 50), color: Color.White);
+                    }
+                }
+            }
 
             foreach (Tank t in level1.tanks)
             {
@@ -142,7 +165,8 @@ namespace RandomTanks
 
                 spriteBatch.Draw(texture, new Vector2(t.x, t.y), rotation: rotation, origin: new Vector2((Tank.tankSize / 2), (Tank.tankSize / 2)), color: Color.White);
             }
-
+            string s = string.Format("x = {0} y = {1} z = {2}", level1.tanks[0].x, level1.tanks[0].y, 50);
+            spriteBatch.DrawString(font, s, new Vector2(100, 100), Color.Black);
             spriteBatch.End();
 
             base.Draw(gameTime);

@@ -17,8 +17,8 @@ namespace RandomTanks.GameClasses
 
         public Tank(int x, int y, TeamType team, double life)
         {
-            this.x = x;
-            this.y = y;
+            this.x = x + Tank.tankSize / 2;
+            this.y = y + Tank.tankSize / 2;
             this.team = team;
             this.life = life;
             or = Orientation.North;
