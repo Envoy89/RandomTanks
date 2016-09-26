@@ -10,6 +10,7 @@ namespace RandomTanks.GameClasses
     class Tank
     {
         public static int tankSize = 50;
+        public static int tankSpeed = 5;
         public int x, y;
         public TeamType team;
         public double life;

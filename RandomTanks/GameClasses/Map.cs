@@ -10,7 +10,7 @@ namespace RandomTanks.GameClasses
     {
         public int mapSizeX { get { return 1000; }}
         public int mapSizeY { get { return 850; } }
-        public int mapCubeSIze { get { return 50; } }
+        public int mapCubeSIze { get { return mapSizeX / 20; } }
 
         public AreaType[,] mass;
 

@@ -11,6 +11,12 @@ namespace RandomTanks.GameClasses
         public List<Tank> tanks;
         public List<Bullet> bullets;
 
+        Texture2D tankTextureFirstTeam;
+        Texture2D tankTextureSecondTeam;
+        Texture2D mapWallArea;
+        Texture2D mapRoadArea;
+        Texture2D bulletTexture;
+
         public Level()
         {
             map = new Map();
@@ -151,6 +157,7 @@ namespace RandomTanks.GameClasses
         {
             for (int i = 0; i < bullets.Count; i++)
             {
+                //двигаем пулю
                 int dx = 0, dy = 0;
                 Bullet b = bullets[i];
                 switch (b.or)
@@ -170,13 +177,13 @@ namespace RandomTanks.GameClasses
                 }
                 bullets[i].x += dx;
                 bullets[i].y += dy;
-
+                //проверяем выход пули за границы
                 if(b.x < 0 || b.y < 0 || b.x > map.mapSizeX || b.y > map.mapSizeY)
                 {
                     bullets.Remove(b);
                     return;
                 }
-
+                //проверяем столкновение пули со стенами
                 int cubeX = (b.x + dx) / map.mapCubeSIze;
                 int cubeY = (b.y + dy) / map.mapCubeSIze;
                 int y = cubeY * 50;
@@ -188,7 +195,7 @@ namespace RandomTanks.GameClasses
                     bullets.Remove(b);
                     return;
                 }
-
+                //проверяем столкновение пули с танками
                 for (int j = 0; j < tanks.Count; j++)
                 {
                     Tank t = tanks[j];
@@ -219,5 +226,70 @@ namespace RandomTanks.GameClasses
             }
         }
 
+        public void LoadContent(Texture2D tankTextureFirstTeam, Texture2D tankTextureSecondTeam, Texture2D mapWallArea, Texture2D mapRoadArea, Texture2D bulletTexture)
+        {
+            this.tankTextureFirstTeam = tankTextureFirstTeam;
+            this.tankTextureSecondTeam = tankTextureSecondTeam;
+            this.mapWallArea = mapWallArea;
+            this.mapRoadArea = mapRoadArea;
+            this.bulletTexture = bulletTexture;
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            AreaType[,] mass = map.mass;
+            for (int i = 0; i < mass.GetLength(0); i++)
+            {
+                for (int j = 0; j < mass.GetLength(1); j++)
+                {
+                    if (mass[i, j] == AreaType.Wall)
+                    {
+                        spriteBatch.Draw(mapWallArea, new Vector2(i * 50, j * 50), color: Color.White);
+                    }
+                    else if (mass[i, j] == AreaType.Road)
+                    {
+                        spriteBatch.Draw(mapRoadArea, new Vector2(i * 50, j * 50), color: Color.White);
+                    }
+                }
+            }
+
+            foreach (Tank t in tanks)
+            {
+                float rotation = 0;
+                Texture2D texture = null;
+                switch (t.or)
+                {
+                    case Orientation.East:
+                        rotation = 1.5708f;
+                        break;
+                    case Orientation.South:
+                        rotation = 3.14159f;
+                        break;
+                    case Orientation.West:
+                        rotation = 4.71239f;
+                        break;
+                    default:
+                        rotation = 0;
+                        break;
+                }
+                switch (t.team)
+                {
+                    case TeamType.FirstTeam:
+                        texture = tankTextureFirstTeam;
+                        break;
+                    case TeamType.SecondTeam:
+                        texture = tankTextureSecondTeam;
+                        break;
+                }
+
+                spriteBatch.Draw(texture, new Vector2(t.x, t.y), rotation: rotation, origin: new Vector2((Tank.tankSize / 2), (Tank.tankSize / 2)), color: Color.White);
+            }
+
+            for (int i = 0; i < bullets.Count; i++)
+            {
+                Bullet b = bullets[i];
+                spriteBatch.Draw(bulletTexture, new Vector2(b.x, b.y), color: Color.Black);
+            }
+        }
     }
 }

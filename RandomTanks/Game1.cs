@@ -13,18 +13,20 @@ namespace RandomTanks
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         int playerTankId = 0;
-        int tankStep = 5;
-        Texture2D tankTextureFirstTeam;
-        Texture2D tankTextureSecondTeam;
-        Texture2D mapWallArea;
-        Texture2D mapRoadArea;
-        Texture2D bulletTexture;
+        
         int ko = 0;
 
         private SpriteFont font;
         private int score = 0;
 
-        Level level1;
+        Level level;
+        GameState currentGameState = GameState.MainMenu;
+
+        MenuButton btnPlay;
+        MenuButton btnExit;
+        MenuButton btnContinue;
+
+        enum GameState { MainMenu, PlayingGame, Payse }
 
         public Game1()
         {
@@ -32,6 +34,7 @@ namespace RandomTanks
             Content.RootDirectory = "Content";
             graphics.PreferredBackBufferWidth = 1000; //ширина экрана 
             graphics.PreferredBackBufferHeight = 850; //его высота  
+            level = new Level();
         }
 
         /// <summary>
@@ -44,7 +47,7 @@ namespace RandomTanks
         {
             // TODO: Add your initialization logic here
             base.Initialize();
-            level1 = new Level();
+            
         }
 
         /// <summary>
@@ -55,12 +58,22 @@ namespace RandomTanks
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            tankTextureFirstTeam = Content.Load<Texture2D>("tank1");
-            tankTextureSecondTeam = Content.Load<Texture2D>("tank2");
-            mapWallArea = Content.Load<Texture2D>("Wall1");
-            mapRoadArea = Content.Load<Texture2D>("Road1");
-            bulletTexture = Content.Load<Texture2D>("bullet");
-            font = Content.Load<SpriteFont>("Score");
+            Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank1");
+            Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank2");
+            Texture2D mapWallArea = Content.Load<Texture2D>("Wall1");
+            Texture2D mapRoadArea = Content.Load<Texture2D>("Road1");
+            Texture2D bulletTexture = Content.Load<Texture2D>("bullet");
+            Texture2D btnPlayTexture = Content.Load<Texture2D>("PlayButton");
+            Texture2D btnExitTexture = Content.Load<Texture2D>("ExitButton"); 
+            Texture2D btnContinueTexture = Content.Load<Texture2D>("ContinueButton");
+
+            level.LoadContent(tankTextureFirstTeam, tankTextureSecondTeam, mapWallArea, mapRoadArea, bulletTexture);
+            btnPlay = new MenuButton(btnPlayTexture, GraphicsDevice);
+            btnPlay.setPosition(new Vector2(400, 200));
+            btnExit = new MenuButton(btnExitTexture, GraphicsDevice);
+            btnExit.setPosition(new Vector2(400, 250));
+            btnContinue = new MenuButton(btnContinueTexture, GraphicsDevice);
+            btnContinue.setPosition(new Vector2(400, 150));
         }
 
         /// <summary>
@@ -80,9 +93,39 @@ namespace RandomTanks
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+                currentGameState = GameState.Payse;
 
-            int dx = 0, dy = 0;
+            MouseState mouse = Mouse.GetState();
+
+            switch (currentGameState)
+            {
+                case GameState.MainMenu:
+                    IsMouseVisible = true;
+                    if(btnPlay.isClicked) { currentGameState = GameState.PlayingGame; }
+                    if(btnExit.isClicked) { Exit(); }
+                    btnPlay.Update(mouse);
+                    btnExit.Update(mouse);
+                    break;
+                case GameState.PlayingGame:
+                    IsMouseVisible = false;
+                    GameLevelUpdate();
+                    break;
+                case GameState.Payse:
+                    IsMouseVisible = true;
+                    if (btnContinue.isClicked) { currentGameState = GameState.PlayingGame; }
+                    if (btnExit.isClicked) { Exit(); }
+                    btnPlay.Update(mouse);
+                    btnExit.Update(mouse);
+                    btnContinue.Update(mouse);
+                    break;
+            }
+
+            base.Update(gameTime);
+        }
+
+        private void GameLevelUpdate()
+        {
+            int dx = 0, dy = 0, tankStep = Tank.tankSpeed;
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
                 dy = -tankStep;
@@ -99,28 +142,28 @@ namespace RandomTanks
             {
                 dx = tankStep;
             }
+
             if (dx != 0)
             {
-                level1.MoveTankX(playerTankId, dx);
+                level.MoveTankX(playerTankId, dx);
             }
-            else if(dy != 0)
+            else if (dy != 0)
             {
-                level1.MoveTankY(playerTankId, dy);
+                level.MoveTankY(playerTankId, dy);
             }
 
-            if(Keyboard.GetState().IsKeyDown(Keys.Space) && ko == 0)
+            if (Keyboard.GetState().IsKeyDown(Keys.Space) && ko == 0)
             {
-                level1.Fire(playerTankId);
+                level.Fire(playerTankId);
                 ko = 10;
             }
 
-            if(ko != 0)
+            if (ko != 0)
             {
                 ko--;
             }
-            level1.Update();
 
-            base.Update(gameTime);
+            level.Update();
         }
 
         /// <summary>
@@ -133,62 +176,25 @@ namespace RandomTanks
 
             // TODO: Add your drawing code here
             spriteBatch.Begin();
-            AreaType[,] mass = level1.map.mass;
-            for (int i = 0; i < mass.GetLength(0); i++)
+
+            switch (currentGameState)
             {
-                for (int j = 0; j < mass.GetLength(1); j++)
-                {
-                    if (mass[i, j] == AreaType.Wall)
-                    {
-                        spriteBatch.Draw(mapWallArea, new Vector2(i * 50, j * 50), color: Color.White);
-                    }
-                    else if (mass[i, j] == AreaType.Road)
-                    {
-                        spriteBatch.Draw(mapRoadArea, new Vector2(i * 50, j * 50), color: Color.White);
-                    }
-                }
+                case GameState.MainMenu:
+                    spriteBatch.Draw(Content.Load<Texture2D>("Menu"), new Rectangle(0,0,graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
+                    btnPlay.Draw(spriteBatch);
+                    btnExit.Draw(spriteBatch);
+                    break;
+                case GameState.PlayingGame:
+                    level.Draw(spriteBatch);
+                    break;
+                case GameState.Payse:
+                    spriteBatch.Draw(Content.Load<Texture2D>("Menu"), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
+                    btnPlay.Draw(spriteBatch);
+                    btnExit.Draw(spriteBatch);
+                    btnContinue.Draw(spriteBatch);
+                    break;
             }
-
-            foreach (Tank t in level1.tanks)
-            {
-                float rotation = 0;
-                Texture2D texture = null;
-                switch (t.or)
-                {
-                    case Orientation.East:
-                        rotation = 1.5708f;
-                        break;
-                    case Orientation.South:
-                        rotation = 3.14159f;
-                        break;
-                    case Orientation.West:
-                        rotation = 4.71239f;
-                        break;
-                    default:
-                        rotation = 0;
-                        break;
-                }
-                switch (t.team)
-                {
-                    case TeamType.FirstTeam:
-                        texture = tankTextureFirstTeam;
-                        break;
-                    case TeamType.SecondTeam:
-                        texture = tankTextureSecondTeam;
-                        break;
-                }
-
-                spriteBatch.Draw(texture, new Vector2(t.x, t.y), rotation: rotation, origin: new Vector2((Tank.tankSize / 2), (Tank.tankSize / 2)), color: Color.White);
-            }
-
-            for (int i = 0; i < level1.bullets.Count; i++)
-            {
-                Bullet b = level1.bullets[i];
-                spriteBatch.Draw(bulletTexture, new Vector2(b.x, b.y), color: Color.Black);
-            }
-
-            string s = string.Format("x = {0} y = {1} z = {2}", level1.tanks[0].x, level1.tanks[0].y, 50);
-            spriteBatch.DrawString(font, s, new Vector2(100, 100), Color.Black);
+            
             spriteBatch.End();
 
             base.Draw(gameTime);
