@@ -42,8 +42,14 @@ namespace RandomTanks.GameClasses
                     down = false;
                 }
                 if (down) { color.A -= 3; } else { color.A += 3; }
-                if(mouse.LeftButton == ButtonState.Pressed) { isClicked = true; }
-                else { isClicked = false; }
+                if(mouse.LeftButton == ButtonState.Pressed)
+                {
+                    isClicked = true;
+                }
+                else
+                {
+                    isClicked = false;
+                }
             }
             else if (color.A < 255)
             {

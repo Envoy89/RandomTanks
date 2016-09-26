@@ -55,6 +55,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\firstMap.txt" />
+    <Content Include="Content\secondMap.txt" />
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>

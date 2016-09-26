@@ -10,6 +10,7 @@ namespace RandomTanks.GameClasses
         public Map map;
         public List<Tank> tanks;
         public List<Bullet> bullets;
+        public int playerScore;
 
         Texture2D tankTextureFirstTeam;
         Texture2D tankTextureSecondTeam;
@@ -17,9 +18,9 @@ namespace RandomTanks.GameClasses
         Texture2D mapRoadArea;
         Texture2D bulletTexture;
 
-        public Level()
+        public Level(string mapFileName)
         {
-            map = new Map();
+            map = new Map(mapFileName);
             bullets = new List<Bullet>();
             tanks = new List<Tank>();
             tanks.Add(new Tank(9 * 50, 5 * 50, TeamType.FirstTeam, 100));

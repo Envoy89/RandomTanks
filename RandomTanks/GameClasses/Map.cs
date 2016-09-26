@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace RandomTanks.GameClasses
 {
@@ -14,53 +10,31 @@ namespace RandomTanks.GameClasses
 
         public AreaType[,] mass;
 
-        public Map()
+        public Map(string mapFileName)
         {
             int x = mapSizeX / mapCubeSIze;
             int y = mapSizeY / mapCubeSIze;
             mass = new AreaType[x, y];
-            for (int i = 0; i < mass.GetLength(0); i++)
+            string s = "";
+            StreamReader file = new StreamReader(mapFileName);
+            int i = 0;
+            while ((s = file.ReadLine()) != null)
             {
-                if (i >= 2 && i < 5 || i >= 15 && i < 18)
+                if (i >= mass.GetLength(1))
                 {
-                    mass[i, 2] = AreaType.Wall;
-                    mass[i, 12] = AreaType.Wall;
+                    break;
                 }
-                if (i >= 7 && i < 13)
+                string[] l = s.Split(' ');
+                int j = 0;
+                foreach(string elem in l)
                 {
-                    mass[i, 3] = AreaType.Wall;
-                    mass[i, 11] = AreaType.Wall;
+                    if (j >= mass.GetLength(0)) { break; }
+                    int ar = int.Parse(elem);
+                    mass[j, i] = (AreaType) ar;
+                    j++;
                 }
-                if(i >= 8 && i < 10)
-                {
-                    mass[i, 6] = AreaType.Wall;
-                }
-                if (i >= 10 && i < 12)
-                {
-                    mass[i, 9] = AreaType.Wall;
-                }
-                mass[i, 15] = AreaType.Wall;
+                i++;
             }
-
-            for (int i = 0; i < mass.GetLength(1); i++)
-            {
-                //
-                if (i >= 3 && i < 5 || i >= 10 && i < 12)
-                {
-                    mass[2, i] = AreaType.Wall;
-                    mass[17, i] = AreaType.Wall;
-                }
-                if (i >= 5 && i < 10)
-                {
-                    mass[5, i] = AreaType.Wall;
-                    mass[14, i] = AreaType.Wall;
-                }
-            }
-
-            mass[2, 7] = AreaType.Wall;
-            mass[17, 7] = AreaType.Wall;
-            mass[8, 7] = AreaType.Wall;
-            mass[11, 8] = AreaType.Wall;
 
         }
     }

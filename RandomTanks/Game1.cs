@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RandomTanks.GameClasses;
+using System.Collections.Generic;
 
 namespace RandomTanks
 {
@@ -20,6 +21,7 @@ namespace RandomTanks
         private int score = 0;
 
         Level level;
+        List<Level> levels;
         GameState currentGameState = GameState.MainMenu;
 
         MenuButton btnPlay;
@@ -34,7 +36,6 @@ namespace RandomTanks
             Content.RootDirectory = "Content";
             graphics.PreferredBackBufferWidth = 1000; //ширина экрана 
             graphics.PreferredBackBufferHeight = 850; //его высота  
-            level = new Level();
         }
 
         /// <summary>
@@ -58,16 +59,11 @@ namespace RandomTanks
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank1");
-            Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank2");
-            Texture2D mapWallArea = Content.Load<Texture2D>("Wall1");
-            Texture2D mapRoadArea = Content.Load<Texture2D>("Road1");
-            Texture2D bulletTexture = Content.Load<Texture2D>("bullet");
+            
             Texture2D btnPlayTexture = Content.Load<Texture2D>("PlayButton");
             Texture2D btnExitTexture = Content.Load<Texture2D>("ExitButton"); 
             Texture2D btnContinueTexture = Content.Load<Texture2D>("ContinueButton");
 
-            level.LoadContent(tankTextureFirstTeam, tankTextureSecondTeam, mapWallArea, mapRoadArea, bulletTexture);
             btnPlay = new MenuButton(btnPlayTexture, GraphicsDevice);
             btnPlay.setPosition(new Vector2(400, 200));
             btnExit = new MenuButton(btnExitTexture, GraphicsDevice);
@@ -93,7 +89,10 @@ namespace RandomTanks
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            {
                 currentGameState = GameState.Payse;
+                btnPlay.isClicked = false;
+            }
 
             MouseState mouse = Mouse.GetState();
 
@@ -101,7 +100,11 @@ namespace RandomTanks
             {
                 case GameState.MainMenu:
                     IsMouseVisible = true;
-                    if(btnPlay.isClicked) { currentGameState = GameState.PlayingGame; }
+                    if(btnPlay.isClicked)
+                    {
+                        NewGame();
+                        currentGameState = GameState.PlayingGame;
+                    }
                     if(btnExit.isClicked) { Exit(); }
                     btnPlay.Update(mouse);
                     btnExit.Update(mouse);
@@ -113,6 +116,7 @@ namespace RandomTanks
                 case GameState.Payse:
                     IsMouseVisible = true;
                     if (btnContinue.isClicked) { currentGameState = GameState.PlayingGame; }
+                    if (btnPlay.isClicked) { NewGame(); currentGameState = GameState.PlayingGame; }
                     if (btnExit.isClicked) { Exit(); }
                     btnPlay.Update(mouse);
                     btnExit.Update(mouse);
@@ -164,6 +168,16 @@ namespace RandomTanks
             }
 
             level.Update();
+
+            if (IsLevelOver()) 
+            {
+                NextLevel();
+            }
+            if (IsGameOver())
+            {
+                currentGameState = GameState.MainMenu;
+                btnPlay.isClicked = false;
+            }
         }
 
         /// <summary>
@@ -198,6 +212,56 @@ namespace RandomTanks
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void NewGame()
+        {
+            levels = new List<Level>();
+            level = new Level(@"Content\firstMap.txt");
+            levels.Add(level);
+            levels.Add(new Level(@"Content\secondMap.txt"));
+            LoadLevelContent();
+        }
+
+        private void LoadLevelContent()
+        {
+            Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank1");
+            Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank2");
+            Texture2D mapWallArea = Content.Load<Texture2D>("Wall1");
+            Texture2D mapRoadArea = Content.Load<Texture2D>("Road1");
+            Texture2D bulletTexture = Content.Load<Texture2D>("bullet");
+
+            level.LoadContent(tankTextureFirstTeam, tankTextureSecondTeam, mapWallArea, mapRoadArea, bulletTexture);
+        }
+
+        private bool IsLevelOver()
+        {
+            bool f = true;
+            TeamType team = level.tanks[0].team;
+            foreach(Tank t in level.tanks)
+            {
+                if(t.team != team) { f = false; break; }
+            }
+            return f;
+        }
+
+        private bool IsGameOver()
+        {
+            if(IsLevelOver() && levels.Count == 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private void NextLevel()
+        {
+            levels.Remove(level);
+            if(levels.Count != 0)
+            {
+                level = levels[0];
+                LoadLevelContent();
+            }
         }
     }
 }
