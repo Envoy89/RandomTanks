@@ -14,11 +14,11 @@ namespace RandomTanks
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         int playerTankId = 0;
-        
+        int score = 0;
         int ko = 0;
 
         private SpriteFont font;
-        private int score = 0;
+        private SpriteFont bigfont;
 
         Level level;
         List<Level> levels;
@@ -28,7 +28,7 @@ namespace RandomTanks
         MenuButton btnExit;
         MenuButton btnContinue;
 
-        enum GameState { MainMenu, PlayingGame, Payse }
+        enum GameState { MainMenu, PlayingGame, Payse, NextLevel }
 
         public Game1()
         {
@@ -63,6 +63,8 @@ namespace RandomTanks
             Texture2D btnPlayTexture = Content.Load<Texture2D>("PlayButton");
             Texture2D btnExitTexture = Content.Load<Texture2D>("ExitButton"); 
             Texture2D btnContinueTexture = Content.Load<Texture2D>("ContinueButton");
+            font = Content.Load<SpriteFont>("Score");
+            bigfont = Content.Load<SpriteFont>("BigText");
 
             btnPlay = new MenuButton(btnPlayTexture, GraphicsDevice);
             btnPlay.setPosition(new Vector2(400, 200));
@@ -122,6 +124,11 @@ namespace RandomTanks
                     btnExit.Update(mouse);
                     btnContinue.Update(mouse);
                     break;
+                case GameState.NextLevel:
+                    if(ko == 0 && IsGameOver()) { btnPlay.isClicked = false; currentGameState = GameState.MainMenu; }
+                    else if (ko == 0) { currentGameState = GameState.PlayingGame; }
+                    else { ko--; }
+                    break;
             }
 
             base.Update(gameTime);
@@ -168,12 +175,17 @@ namespace RandomTanks
             }
 
             level.Update();
+            score = level.playerScore;
 
             if (IsLevelOver()) 
             {
                 NextLevel();
             }
             if (IsGameOver())
+            {
+                ko--;
+            }
+            if (IsGameOver() && ko == 0)
             {
                 currentGameState = GameState.MainMenu;
                 btnPlay.isClicked = false;
@@ -200,12 +212,18 @@ namespace RandomTanks
                     break;
                 case GameState.PlayingGame:
                     level.Draw(spriteBatch);
+                    string s = string.Format("Score: {0}   Life: {1}", score, level.tanks[playerTankId].life);
+                    spriteBatch.DrawString(font, s, new Vector2(800, 820), Color.Black);
                     break;
                 case GameState.Payse:
                     spriteBatch.Draw(Content.Load<Texture2D>("Menu"), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
                     btnPlay.Draw(spriteBatch);
                     btnExit.Draw(spriteBatch);
                     btnContinue.Draw(spriteBatch);
+                    break;
+                case GameState.NextLevel:
+                    string se = string.Format("You win\nYour scope: {0}", score);
+                    spriteBatch.DrawString(bigfont, se, new Vector2(400, 300), Color.Black);
                     break;
             }
             
@@ -225,8 +243,8 @@ namespace RandomTanks
 
         private void LoadLevelContent()
         {
-            Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank1");
-            Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank2");
+            Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank12");
+            Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank22");
             Texture2D mapWallArea = Content.Load<Texture2D>("Wall1");
             Texture2D mapRoadArea = Content.Load<Texture2D>("Road1");
             Texture2D bulletTexture = Content.Load<Texture2D>("bullet");
@@ -257,6 +275,8 @@ namespace RandomTanks
         private void NextLevel()
         {
             levels.Remove(level);
+            ko = 100;
+            currentGameState = GameState.NextLevel;
             if(levels.Count != 0)
             {
                 level = levels[0];

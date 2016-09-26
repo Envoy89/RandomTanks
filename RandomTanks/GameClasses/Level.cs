@@ -10,7 +10,7 @@ namespace RandomTanks.GameClasses
         public Map map;
         public List<Tank> tanks;
         public List<Bullet> bullets;
-        public int playerScore;
+        public int playerScore = 0;
 
         Texture2D tankTextureFirstTeam;
         Texture2D tankTextureSecondTeam;
@@ -219,6 +219,10 @@ namespace RandomTanks.GameClasses
                         if(t.life <= 0)
                         {
                             tanks.Remove(t);
+                            if (b.owner == tanks[0])
+                            {
+                                playerScore += 1;
+                            }
                         }
                         bullets.Remove(b);
                         break;
