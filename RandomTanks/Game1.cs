@@ -211,7 +211,7 @@ namespace RandomTanks
             switch (currentGameState)
             {
                 case GameState.MainMenu:
-                    spriteBatch.Draw(Content.Load<Texture2D>("Menu"), new Rectangle(0,0,graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
+                    spriteBatch.Draw(Content.Load<Texture2D>("Menu2"), new Rectangle(0,0,graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
                     btnPlay.Draw(spriteBatch);
                     btnExit.Draw(spriteBatch);
                     break;
