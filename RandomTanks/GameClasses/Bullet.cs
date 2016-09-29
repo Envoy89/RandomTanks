@@ -8,7 +8,7 @@ namespace RandomTanks.GameClasses
 {
     class Bullet
     {
-        public int x, y, sizeX = 10, sizeY = 10, speed = 3;
+        public int x, y, sizeX = 10, sizeY = 10, speed = 7;
         public Orientation or;
         public TeamType team;
         public Tank owner;

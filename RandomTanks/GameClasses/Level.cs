@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 
 
@@ -11,6 +12,10 @@ namespace RandomTanks.GameClasses
         public List<Tank> tanks;
         public List<Bullet> bullets;
         public int playerScore = 0;
+        Random rand;
+        public bool gameOver = false;
+        private const int koConst = 200;
+        private int ko = koConst;
 
         Texture2D tankTextureFirstTeam;
         Texture2D tankTextureSecondTeam;
@@ -23,17 +28,18 @@ namespace RandomTanks.GameClasses
             map = new Map(mapFileName);
             bullets = new List<Bullet>();
             tanks = new List<Tank>();
-            tanks.Add(new Tank(9 * 50, 5 * 50, TeamType.FirstTeam, 100));
-            tanks.Add(new Tank(3*50, 50, TeamType.FirstTeam, 100));
-            tanks.Add(new Tank(7*50, 50, TeamType.FirstTeam, 100));
-            tanks.Add(new Tank(12*50, 50, TeamType.FirstTeam, 100));
-            tanks.Add(new Tank(16*50, 50, TeamType.FirstTeam, 100));
+            rand = new Random();
+            tanks.Add(new Tank(9 * 50, 5 * 50, TeamType.FirstTeam, 100, rand));
+            tanks.Add(new Tank(3*50, 50, TeamType.FirstTeam, 100, rand));
+            tanks.Add(new Tank(7*50, 50, TeamType.FirstTeam, 100, rand));
+            tanks.Add(new Tank(12*50, 50, TeamType.FirstTeam, 100, rand));
+            tanks.Add(new Tank(16*50, 50, TeamType.FirstTeam, 100, rand));
 
-            tanks.Add(new Tank(10 * 50, 10 * 50, TeamType.SecondTeam, 100));
-            tanks.Add(new Tank(3 * 50, 13 * 50, TeamType.SecondTeam, 100));
-            tanks.Add(new Tank(7 * 50, 13 * 50, TeamType.SecondTeam, 100));
-            tanks.Add(new Tank(12 * 50, 13 * 50, TeamType.SecondTeam, 100));
-            tanks.Add(new Tank(16 * 50, 13 * 50, TeamType.SecondTeam, 100));
+            tanks.Add(new Tank(10 * 50, 10 * 50, TeamType.SecondTeam, 100, rand));
+            tanks.Add(new Tank(3 * 50, 13 * 50, TeamType.SecondTeam, 100, rand));
+            tanks.Add(new Tank(7 * 50, 13 * 50, TeamType.SecondTeam, 100, rand));
+            tanks.Add(new Tank(12 * 50, 13 * 50, TeamType.SecondTeam, 100, rand));
+            tanks.Add(new Tank(16 * 50, 13 * 50, TeamType.SecondTeam, 100, rand));
         }
 
         public void MoveTankX(int tankId, int dx)
@@ -148,6 +154,8 @@ namespace RandomTanks.GameClasses
 
         public void Fire(int tankId)
         {
+            if(tanks[tankId].fireDown != 0) { return; }
+            else { tanks[tankId].fireDown = 50; }
             int x = tanks[tankId].x, y = tanks[tankId].y;
             Orientation or = tanks[tankId].or;
             TeamType t = tanks[tankId].team;
@@ -156,6 +164,17 @@ namespace RandomTanks.GameClasses
 
         public void Update()
         {
+            if(ko == 0)
+            {
+                RandomTeam();
+                ko = koConst;
+            }
+            else { ko--; }
+            for (int i = 1; i < tanks.Count; i++)
+            {
+                tankAct(i);
+                if(tanks[i].fireDown != 0) { tanks[i].fireDown--; }
+            }
             for (int i = 0; i < bullets.Count; i++)
             {
                 //двигаем пулю
@@ -219,6 +238,10 @@ namespace RandomTanks.GameClasses
                         if(t.life <= 0)
                         {
                             tanks.Remove(t);
+                            if (j == 0)
+                            {
+                                gameOver = true;
+                            }
                             if (b.owner == tanks[0])
                             {
                                 playerScore += 1;
@@ -295,6 +318,137 @@ namespace RandomTanks.GameClasses
                 Bullet b = bullets[i];
                 spriteBatch.Draw(bulletTexture, new Vector2(b.x, b.y), color: Color.Black);
             }
+        }
+
+        private void tankAct(int tankId)
+        {
+            Tank tank = tanks[tankId];
+            if(tank.fireDown == 0 && IsFire(tank))
+            {
+                Fire(tankId);
+                return;
+            }
+            int dx = 0, dy = 0;
+            switch (tank.or)
+            {
+                case Orientation.North:
+                    dy = -Tank.tankSpeed;
+                    break;
+                case Orientation.South:
+                    dy = Tank.tankSpeed;
+                    break;
+                case Orientation.West:
+                    dx = -Tank.tankSpeed;
+                    break;
+                case Orientation.East:
+                    dx = Tank.tankSpeed;
+                    break;
+            }
+            if (dx != 0)
+            {
+                MoveTankX(tankId, dx);
+                if (!CanMoveX(tank, dx))
+                {
+                    int n = rand.Next(0, 4);
+                    tank.or = (Orientation)n;
+                }
+            }
+            else if (dy != 0)
+            {
+                MoveTankY(tankId, dy);
+                if (!CanMoveY(tank, dy))
+                {
+                    int n = rand.Next(0, 4);
+                    tank.or = (Orientation)n;
+                }
+            }
+        }
+
+        private bool IsFire(Tank tank)
+        {
+            foreach(Tank t in tanks)
+            {
+                if (t.team == tank.team) { continue; }
+                bool df = false;
+                if(tank.x >= t.x - Tank.tankSize / 2 && tank.x <= t.x + Tank.tankSize / 2)
+                {
+                    int d = tank.y > t.y ? -1 : 1;
+                    for (int j = tank.y; j != t.y; j += d)
+                    {
+                        int cubeY = j / map.mapCubeSIze;
+                        int cubeX = tank.x / map.mapCubeSIze;
+                        if (map.mass[cubeX, cubeY] == AreaType.Wall)
+                        {
+                            df = true;
+                        }
+                    }
+                    if (df) { continue; }
+                    if(tank.y > t.y)
+                    {
+                        tank.or = Orientation.North;
+                        return true;
+                    }
+                    else
+                    {
+                        tank.or = Orientation.South;
+                        return true;
+                    }
+                }
+                else if(tank.y >= t.y - Tank.tankSize / 2 && tank.y <= t.y + Tank.tankSize / 2 )
+                {
+                    int d = tank.x > t.x ? -1 : 1;
+                    for (int j = tank.x; j != t.x; j += d)
+                    {
+                        int cubeY = tank.y / map.mapCubeSIze;
+                        int cubeX = j / map.mapCubeSIze;
+                        if (map.mass[cubeX, cubeY] == AreaType.Wall) { df = true; }
+                    }
+                    if (df) { continue; }
+                    if (tank.x > t.x)
+                    {
+                        tank.or = Orientation.West;
+                        return true;
+                    }
+                    else
+                    {
+                        tank.or = Orientation.East;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private void RandomTeam()
+        {
+            int firstTeamCount = 0, secondTeamCount = 0;
+            foreach (var tank in tanks)
+            {
+                if(tank.team == TeamType.FirstTeam)
+                {
+                    firstTeamCount++;
+                }
+                else
+                {
+                    secondTeamCount++;
+                }
+            }
+            for (int i = 0; i < tanks.Count; i++)
+            {
+                tanks[i].team = TeamType.SecondTeam;
+            }
+            HashSet<int> t = new HashSet<int>();
+            for (int i = 0; i < firstTeamCount; i++)
+            {
+                int id = rand.Next(tanks.Count);
+                while (t.Contains(id))
+                {
+                    id = rand.Next(tanks.Count);
+                }
+                tanks[id].team = TeamType.FirstTeam;
+                t.Add(id);
+            }
+
         }
     }
 }

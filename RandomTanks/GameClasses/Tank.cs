@@ -15,15 +15,17 @@ namespace RandomTanks.GameClasses
         public TeamType team;
         public double life;
         public Orientation or;
-        public double damage = 50;
+        public double damage = 25;
+        public int fireDown = 50;
 
-        public Tank(int x, int y, TeamType team, double life)
+        public Tank(int x, int y, TeamType team, double life, Random rand)
         {
             this.x = x + Tank.tankSize / 2;
             this.y = y + Tank.tankSize / 2;
             this.team = team;
             this.life = life;
-            or = Orientation.North;
+            int n = rand.Next(0, 3);
+            or = (Orientation)n;
         }
     }
 

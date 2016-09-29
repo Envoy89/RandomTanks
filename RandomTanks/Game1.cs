@@ -16,6 +16,8 @@ namespace RandomTanks
         int playerTankId = 0;
         int score = 0;
         int ko = 0;
+        int ko2 = 0;
+        int levelCount = 1;
 
         private SpriteFont font;
         private SpriteFont bigfont;
@@ -125,9 +127,9 @@ namespace RandomTanks
                     btnContinue.Update(mouse);
                     break;
                 case GameState.NextLevel:
-                    if(ko == 0 && IsGameOver()) { btnPlay.isClicked = false; currentGameState = GameState.MainMenu; }
-                    else if (ko == 0) { currentGameState = GameState.PlayingGame; }
-                    else { ko--; }
+                    if(ko2 == 0 && IsGameOver()) { btnPlay.isClicked = false; currentGameState = GameState.MainMenu; }
+                    else if (ko2 == 0) { currentGameState = GameState.PlayingGame; }
+                    else { ko2--; }
                     break;
             }
 
@@ -136,56 +138,59 @@ namespace RandomTanks
 
         private void GameLevelUpdate()
         {
-            int dx = 0, dy = 0, tankStep = Tank.tankSpeed;
-            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+            if (!IsGameOver())
             {
-                dy = -tankStep;
-            }
-            else if (Keyboard.GetState().IsKeyDown(Keys.Down))
-            {
-                dy = tankStep;
-            }
-            else if (Keyboard.GetState().IsKeyDown(Keys.Left))
-            {
-                dx = -tankStep;
-            }
-            else if (Keyboard.GetState().IsKeyDown(Keys.Right))
-            {
-                dx = tankStep;
+                int dx = 0, dy = 0, tankStep = Tank.tankSpeed;
+                if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                {
+                    dy = -tankStep;
+                }
+                else if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                {
+                    dy = tankStep;
+                }
+                else if (Keyboard.GetState().IsKeyDown(Keys.Left))
+                {
+                    dx = -tankStep;
+                }
+                else if (Keyboard.GetState().IsKeyDown(Keys.Right))
+                {
+                    dx = tankStep;
+                }
+
+                if (dx != 0)
+                {
+                    level.MoveTankX(playerTankId, dx);
+                }
+                else if (dy != 0)
+                {
+                    level.MoveTankY(playerTankId, dy);
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.Space) && ko == 0)
+                {
+                    level.Fire(playerTankId);
+                    level.tanks[playerTankId].fireDown = 5;
+                }
+
+                if (level.tanks[playerTankId].fireDown != 0)
+                {
+                    level.tanks[playerTankId].fireDown--;
+                }
+
+                level.Update();
+                score = level.playerScore;
             }
 
-            if (dx != 0)
-            {
-                level.MoveTankX(playerTankId, dx);
-            }
-            else if (dy != 0)
-            {
-                level.MoveTankY(playerTankId, dy);
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Space) && ko == 0)
-            {
-                level.Fire(playerTankId);
-                ko = 10;
-            }
-
-            if (ko != 0)
-            {
-                ko--;
-            }
-
-            level.Update();
-            score = level.playerScore;
-
-            if (IsLevelOver()) 
+            if (IsLevelOver() && !IsGameOver()) 
             {
                 NextLevel();
             }
             if (IsGameOver())
             {
-                ko--;
+                ko2--;
             }
-            if (IsGameOver() && ko == 0)
+            if (ko2 == 0 && IsGameOver())
             {
                 currentGameState = GameState.MainMenu;
                 btnPlay.isClicked = false;
@@ -211,9 +216,17 @@ namespace RandomTanks
                     btnExit.Draw(spriteBatch);
                     break;
                 case GameState.PlayingGame:
-                    level.Draw(spriteBatch);
-                    string s = string.Format("Score: {0}   Life: {1}", score, level.tanks[playerTankId].life);
-                    spriteBatch.DrawString(font, s, new Vector2(800, 820), Color.Black);
+                    if (ko2 == 0)
+                    {
+                        level.Draw(spriteBatch);
+                        string s = string.Format("Level: {2} Score: {0}   Life: {1}", score, level.tanks[playerTankId].life, levelCount);
+                        spriteBatch.DrawString(font, s, new Vector2(800, 820), Color.Black);
+                    }
+                    else
+                    {
+                        string se2 = string.Format("You lose\nYour scope: {0}", score);
+                        spriteBatch.DrawString(bigfont, se2, new Vector2(400, 300), Color.Black);
+                    }
                     break;
                 case GameState.Payse:
                     spriteBatch.Draw(Content.Load<Texture2D>("Menu"), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
@@ -222,7 +235,7 @@ namespace RandomTanks
                     btnContinue.Draw(spriteBatch);
                     break;
                 case GameState.NextLevel:
-                    string se = string.Format("You win\nYour scope: {0}", score);
+                    string se = string.Format("You win\nYour scope: {0}", score); 
                     spriteBatch.DrawString(bigfont, se, new Vector2(400, 300), Color.Black);
                     break;
             }
@@ -238,14 +251,27 @@ namespace RandomTanks
             level = new Level(@"Content\firstMap.txt");
             levels.Add(level);
             levels.Add(new Level(@"Content\secondMap.txt"));
+            levels.Add(new Level(@"Content\thirdMap.txt"));
+            levels.Add(new Level(@"Content\secondMap.txt"));
+            levels.Add(new Level(@"Content\firstMap.txt"));
+            levels.Add(new Level(@"Content\fourthMap.txt"));
+            levels.Add(new Level(@"Content\secondMap.txt"));
+            levels.Add(new Level(@"Content\firstMap.txt"));
+            levels.Add(new Level(@"Content\fifthMap.txt"));
             LoadLevelContent();
+
+            playerTankId = 0;
+            score = 0;
+            ko = 0;
+            ko2 = 0;
+            levelCount = 1;
         }
 
         private void LoadLevelContent()
         {
             Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank12");
             Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank22");
-            Texture2D mapWallArea = Content.Load<Texture2D>("Wall1");
+            Texture2D mapWallArea = Content.Load<Texture2D>("Wall12");
             Texture2D mapRoadArea = Content.Load<Texture2D>("Road1");
             Texture2D bulletTexture = Content.Load<Texture2D>("bullet");
 
@@ -265,8 +291,9 @@ namespace RandomTanks
 
         private bool IsGameOver()
         {
-            if(IsLevelOver() && levels.Count == 0)
+            if((IsLevelOver() && levels.Count == 0) || level.gameOver)
             {
+                if (ko2 == 0) { ko2 = 50; }
                 return true;
             }
             return false;
@@ -275,12 +302,13 @@ namespace RandomTanks
         private void NextLevel()
         {
             levels.Remove(level);
-            ko = 100;
+            ko2 = 100;
             currentGameState = GameState.NextLevel;
             if(levels.Count != 0)
             {
                 level = levels[0];
                 LoadLevelContent();
+                levelCount++;
             }
         }
     }
