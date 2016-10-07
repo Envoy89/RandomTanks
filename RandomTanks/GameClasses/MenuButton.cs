@@ -14,7 +14,7 @@ namespace RandomTanks.GameClasses
         Texture2D texture;
         Vector2 position;
         Rectangle rectangle;
-        Color color = new Color(255, 255, 255, 255);
+        Color color = new Color(255, 25, 0, 255);
         Vector2 size;
         bool down;
         public bool isClicked;

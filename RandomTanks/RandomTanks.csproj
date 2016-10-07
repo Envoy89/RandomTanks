@@ -55,8 +55,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\fifthMap.txt" />
     <Content Include="Content\firstMap.txt" />
+    <Content Include="Content\fourthMap.txt" />
     <Content Include="Content\secondMap.txt" />
+    <Content Include="Content\thirdMap.txt" />
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>

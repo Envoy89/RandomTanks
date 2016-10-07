@@ -225,17 +225,19 @@ namespace RandomTanks
                     else
                     {
                         string se2 = string.Format("You lose\nYour scope: {0}", score);
+                        spriteBatch.Draw(Content.Load<Texture2D>("fon"), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
                         spriteBatch.DrawString(bigfont, se2, new Vector2(400, 300), Color.Black);
                     }
                     break;
                 case GameState.Payse:
-                    spriteBatch.Draw(Content.Load<Texture2D>("Menu"), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
+                    spriteBatch.Draw(Content.Load<Texture2D>("Menu2"), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
                     btnPlay.Draw(spriteBatch);
                     btnExit.Draw(spriteBatch);
                     btnContinue.Draw(spriteBatch);
                     break;
                 case GameState.NextLevel:
                     string se = string.Format("You win\nYour scope: {0}", score); 
+                    spriteBatch.Draw(Content.Load<Texture2D>("fon"), new Rectangle(0, 0, graphics.PreferredBackBufferWidth, graphics.PreferredBackBufferHeight), Color.White);
                     spriteBatch.DrawString(bigfont, se, new Vector2(400, 300), Color.Black);
                     break;
             }
@@ -269,8 +271,8 @@ namespace RandomTanks
 
         private void LoadLevelContent()
         {
-            Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank12");
-            Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank22");
+            Texture2D tankTextureFirstTeam = Content.Load<Texture2D>("tank13");
+            Texture2D tankTextureSecondTeam = Content.Load<Texture2D>("tank23");
             Texture2D mapWallArea = Content.Load<Texture2D>("Wall12");
             Texture2D mapRoadArea = Content.Load<Texture2D>("Road1");
             Texture2D bulletTexture = Content.Load<Texture2D>("bullet");
